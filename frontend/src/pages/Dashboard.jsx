@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { BarChart2, Users, Video, ArrowUpRight, Plus, CheckSquare, Clock, Calendar, ArrowRight, Play, Download, X, Film } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import API_BASE_URL from '../config';
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -78,8 +79,7 @@ export default function Dashboard() {
     if (!recordingUrl) return;
     try {
       toast?.success('Starting download...');
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
-      const url = recordingUrl.startsWith('http') ? recordingUrl : `${backendUrl}${recordingUrl}`;
+      const url = recordingUrl.startsWith('http') ? recordingUrl : `${API_BASE_URL}${recordingUrl}`;
       const response = await fetch(url);
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
@@ -367,7 +367,7 @@ export default function Dashboard() {
             </div>
             <div className="p-4 bg-black/50">
               <video
-                src={playingRecording.fileUrl.startsWith('http') ? playingRecording.fileUrl : `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}${playingRecording.fileUrl}`}
+                src={playingRecording.fileUrl.startsWith('http') ? playingRecording.fileUrl : `${API_BASE_URL}${playingRecording.fileUrl}`}
                 controls
                 className="w-full rounded-lg bg-black"
                 style={{ maxHeight: '70vh' }}

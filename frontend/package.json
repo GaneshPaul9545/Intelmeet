@@ -3,17 +3,23 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "vite --open",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "node server.js"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.2.2",
     "@tailwindcss/vite": "^4.2.2",
     "autoprefixer": "^10.5.0",
     "clsx": "^2.1.1",
+    "express": "^4.19.2",
+    "http-proxy-middleware": "^3.0.0",
     "lucide-react": "^1.8.0",
     "postcss": "^8.5.10",
     "react": "^19.2.4",

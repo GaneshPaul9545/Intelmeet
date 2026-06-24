@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
+import API_BASE_URL from '../config';
 
 const ICE_SERVERS = {
   iceServers: [
@@ -128,8 +129,7 @@ export default function useWebRTC(roomId, userData, initialMediaState = { isVide
       if (!mounted) return;
 
       // Connect socket
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
-      const socket = io(backendUrl);
+      const socket = io(API_BASE_URL);
       socketRef.current = socket;
 
       socket.on('connect', () => {

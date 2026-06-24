@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { io } from 'socket.io-client';
+import API_BASE_URL from '../config';
 
 const NotificationContext = createContext();
 
@@ -32,7 +33,7 @@ export const NotificationProvider = ({ children }) => {
   useEffect(() => {
     if (!user) return;
 
-    const newSocket = io(import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000', {
+    const newSocket = io(API_BASE_URL, {
       transports: ['websocket']
     });
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CheckCircle2, Download, Share2, PlayCircle, Sparkles, ArrowLeft, Loader2 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import API_BASE_URL from '../config';
 
 export default function Summary() {
   const { meetingId } = useParams();
@@ -149,7 +150,7 @@ ${(summaryData.actionItems || []).map(a => `☐ ${a.text || a} ${a.assignee ? `(
     if (!targetUrl) return;
     try {
       toast?.success('Starting download...');
-      const url = targetUrl.startsWith('http') ? targetUrl : `http://localhost:5000${targetUrl}`;
+      const url = targetUrl.startsWith('http') ? targetUrl : `${API_BASE_URL}${targetUrl}`;
       const response = await fetch(url);
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
@@ -323,7 +324,7 @@ ${(summaryData.actionItems || []).map(a => `☐ ${a.text || a} ${a.assignee ? `(
                     </div>
                     <div className="bg-black/50 rounded-2xl overflow-hidden border border-white/10 aspect-video flex items-center justify-center">
                       <video 
-                        src={rec.fileUrl.startsWith('http') ? rec.fileUrl : `http://localhost:5000${rec.fileUrl}`} 
+                        src={rec.fileUrl.startsWith('http') ? rec.fileUrl : `${API_BASE_URL}${rec.fileUrl}`} 
                         controls 
                         className="w-full h-full object-cover"
                       />
@@ -357,13 +358,14 @@ ${(summaryData.actionItems || []).map(a => `☐ ${a.text || a} ${a.assignee ? `(
                 </div>
                 <div className="bg-black/50 rounded-2xl overflow-hidden border border-white/10 aspect-video flex items-center justify-center">
                   <video 
-                    src={meetingData.recordingUrl.startsWith('http') ? meetingData.recordingUrl : `http://localhost:5000${meetingData.recordingUrl}`} 
+                    src={meetingData.recordingUrl.startsWith('http') ? meetingData.recordingUrl : `${API_BASE_URL}${meetingData.recordingUrl}`} 
                     controls 
                     className="w-full h-full object-cover"
                   />
                 </div>
               </section>
             )}
+
 
             {/* Summary */}
             {summaryPoints && summaryPoints.length > 0 && (

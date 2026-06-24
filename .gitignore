@@ -1,91 +1,25 @@
-# ============================
-# IntelMeet — MERN Stack .gitignore
-# ============================
-
-# ----- Node Modules -----
+# Dependencies
 node_modules/
-**/node_modules/
 
-# ----- Environment Variables (NEVER upload these!) -----
+# Environment variables
 .env
 .env.local
-.env.development
 .env.production
-.env.staging
-**/.env
-**/.env.local
-**/.env.production
-backend/.env
-frontend/.env
 
-# ----- Build Output -----
-dist/
-build/
-.vite/
-**/dist/
-**/build/
+# Build output
+frontend/dist/
 
-# ----- Logs -----
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# Logs
 backend/logs/
+*.log
 
-# ----- Uploaded / Media Files -----
+# Uploads
 backend/uploads/
-uploads/
-*.mp4
-*.webm
-*.mov
-*.avi
-*.mkv
 
-# ----- OS Files -----
+# OS files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
 Thumbs.db
-ehthumbs.db
-Desktop.ini
 
-# ----- IDE / Editor -----
+# IDE
 .vscode/
 .idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-*.swp
-
-# ----- Package Manager Locks (Keep lock files for consistency) -----
-# package-lock.json (Keep this)
-yarn.lock
-pnpm-lock.yaml
-
-# ----- Testing -----
-coverage/
-.nyc_output/
-
-# ----- Runtime / Cache -----
-.cache/
-.parcel-cache/
-.npm/
-*.tsbuildinfo
-
-# ----- Docker -----
-.docker/
-
-# ----- Misc -----
-*.pem
-*.key
-*.cert
-*.p12
-.vercel
-.netlify
