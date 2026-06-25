@@ -333,13 +333,21 @@ app.get('/api/generate-meeting-code', (req, res) => {
 });
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI)
+const mongoUri = process.env.MONGODB_URI;
+if (!mongoUri) {
+  logger.error('MONGODB_URI is not set. Add it in Render Environment or backend/.env');
+  process.exit(1);
+}
+
+mongoose.connect(mongoUri)
   .then(() => {
     logger.info('Connected to MongoDB');
     server.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);
-      // Make io accessible to controllers
       app.set('io', io);
     });
   })
-  .catch((err) => logger.error('MongoDB connection error:', err));
+  .catch((err) => {
+    logger.error('MongoDB connection error:', err.message);
+    process.exit(1);
+  });
