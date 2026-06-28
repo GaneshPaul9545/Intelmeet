@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { BarChart2, Users, Video, ArrowUpRight, Plus, CheckSquare, Clock, Calendar, ArrowRight, Play, Download, X, Film } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import api from '../services/api';
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -20,29 +21,15 @@ export default function Dashboard() {
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = { 'Authorization': `Bearer ${token}` };
-
       const [statsRes, meetingsRes, recordingsRes] = await Promise.all([
-        fetch('/api/analytics/dashboard', { headers }),
-        fetch('/api/meetings', { headers }),
-        fetch('/api/recordings/user/all', { headers })
+        api.get('/api/analytics/dashboard'),
+        api.get('/api/meetings'),
+        api.get('/api/recordings/user/all')
       ]);
 
-      if (statsRes.ok) {
-        const statsData = await statsRes.json();
-        setStats(statsData);
-      }
-
-      if (meetingsRes.ok) {
-        const meetingsData = await meetingsRes.json();
-        setRecentMeetings(meetingsData.slice(0, 8));
-      }
-
-      if (recordingsRes && recordingsRes.ok) {
-        const recordingsData = await recordingsRes.json();
-        setRecordings(recordingsData);
-      }
+      setStats(statsRes.data);
+      setRecentMeetings(meetingsRes.data.slice(0, 8));
+      setRecordings(recordingsRes.data);
     } catch (err) {
       console.error('Failed to fetch dashboard data', err);
     } finally {
@@ -52,23 +39,12 @@ export default function Dashboard() {
 
   const handleCreateMeeting = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/meetings', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          title: `${user?.name || 'Team'}'s Meeting`,
-          scheduledTime: new Date()
-        })
+      const res = await api.post('/api/meetings', {
+        title: `${user?.name || 'Team'}'s Meeting`,
+        scheduledTime: new Date()
       });
-      if (res.ok) {
-        const data = await res.json();
-        toast?.success('Meeting created successfully!');
-        navigate(`/meeting/${data.meetingCode || data._id}`);
-      }
+      toast?.success('Meeting created successfully!');
+      navigate(`/meeting/${res.data.meetingCode || res.data._id}`);
     } catch (err) {
       toast?.error('Failed to create meeting');
     }

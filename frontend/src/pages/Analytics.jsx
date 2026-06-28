@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Area, AreaChart } from 'recharts';
+import api from '../services/api';
 
 export default function Analytics() {
   const [barData, setBarData] = useState([]);
@@ -14,43 +15,15 @@ export default function Analytics() {
 
   const fetchAnalytics = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = { 'Authorization': `Bearer ${token}` };
-
       const [meetingsRes, productivityRes, engagementRes] = await Promise.all([
-        fetch('/api/analytics/meetings-per-week', { headers }),
-        fetch('/api/analytics/productivity', { headers }),
-        fetch('/api/analytics/engagement', { headers })
+        api.get('/api/analytics/meetings-per-week'),
+        api.get('/api/analytics/productivity'),
+        api.get('/api/analytics/engagement')
       ]);
 
-      if (meetingsRes.ok) {
-        const data = await meetingsRes.json();
-        setBarData(data);
-      } else {
-        setBarData([
-          { name: 'Mon', meetings: 4 }, { name: 'Tue', meetings: 3 },
-          { name: 'Wed', meetings: 7 }, { name: 'Thu', meetings: 5 },
-          { name: 'Fri', meetings: 2 }
-        ]);
-      }
-
-      if (productivityRes.ok) {
-        const data = await productivityRes.json();
-        setLineData(data);
-      } else {
-        setLineData([
-          { name: 'Week 1', productivity: 400 }, { name: 'Week 2', productivity: 300 },
-          { name: 'Week 3', productivity: 550 }, { name: 'Week 4', productivity: 450 },
-          { name: 'Week 5', productivity: 600 }
-        ]);
-      }
-
-      if (engagementRes.ok) {
-        const data = await engagementRes.json();
-        setPieData(data);
-      } else {
-        setPieData([{ name: 'Active', value: 30 }, { name: 'Idle', value: 70 }]);
-      }
+      setBarData(meetingsRes.data);
+      setLineData(productivityRes.data);
+      setPieData(engagementRes.data);
     } catch (err) {
       console.error('Failed to fetch analytics:', err);
       // Use fallback data

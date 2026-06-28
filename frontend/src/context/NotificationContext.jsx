@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { io } from 'socket.io-client';
+import api from '../services/api';
 
 const NotificationContext = createContext();
 
@@ -15,14 +16,8 @@ export const NotificationProvider = ({ children }) => {
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/notifications', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setNotifications(data);
-      }
+      const res = await api.get('/api/notifications');
+      setNotifications(res.data);
     } catch (err) {
       console.error('Failed to fetch notifications:', err);
     }
@@ -58,11 +53,7 @@ export const NotificationProvider = ({ children }) => {
 
   const markRead = async (id) => {
     try {
-      const token = localStorage.getItem('token');
-      await fetch(`/api/notifications/${id}/read`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.patch(`/api/notifications/${id}/read`);
       setNotifications(prev =>
         prev.map(n => n._id === id ? { ...n, isRead: true } : n)
       );
@@ -73,11 +64,7 @@ export const NotificationProvider = ({ children }) => {
 
   const markAllRead = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await fetch('/api/notifications/read-all', {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.patch('/api/notifications/read-all');
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
     } catch (err) {
       console.error('Failed to mark all read:', err);
@@ -86,11 +73,7 @@ export const NotificationProvider = ({ children }) => {
 
   const deleteNotification = async (id) => {
     try {
-      const token = localStorage.getItem('token');
-      await fetch(`/api/notifications/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/api/notifications/${id}`);
       setNotifications(prev => prev.filter(n => n._id !== id));
     } catch (err) {
       console.error('Failed to delete notification:', err);
@@ -103,3 +86,4 @@ export const NotificationProvider = ({ children }) => {
     </NotificationContext.Provider>
   );
 };
+

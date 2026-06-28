@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CheckCircle2, Download, Share2, PlayCircle, Sparkles, ArrowLeft, Loader2 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import api from '../services/api';
 
 export default function Summary() {
   const { meetingId } = useParams();
@@ -28,14 +29,8 @@ export default function Summary() {
 
   const fetchRecordings = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`/api/recordings/${meetingId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setRecordings(data);
-      }
+      const res = await api.get(`/api/recordings/${meetingId}`);
+      setRecordings(res.data);
     } catch (err) {
       console.error('Failed to fetch recordings:', err);
     }
@@ -43,15 +38,10 @@ export default function Summary() {
 
   const fetchMeeting = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`/api/meetings/${meetingId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setMeetingData(data);
-        if (data.notes) setNotes(data.notes);
-      }
+      const res = await api.get(`/api/meetings/${meetingId}`);
+      const data = res.data;
+      setMeetingData(data);
+      if (data.notes) setNotes(data.notes);
     } catch (err) {
       console.error('Failed to fetch meeting:', err);
     }
@@ -59,14 +49,8 @@ export default function Summary() {
 
   const fetchSummary = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`/api/summaries/${meetingId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setSummaryData(data);
-      }
+      const res = await api.get(`/api/summaries/${meetingId}`);
+      setSummaryData(res.data);
     } catch (err) {
       console.error('Failed to fetch summary:', err);
     } finally {
@@ -77,28 +61,15 @@ export default function Summary() {
   const handleGenerateSummary = async () => {
     setGenerating(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/summaries/generate', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          meetingId,
-          notes: notes || 'General team sync meeting. Discussed project progress and upcoming milestones.',
-          participantNames: meetingData?.participants?.map(p => p.name) || []
-        })
+      const res = await api.post('/api/summaries/generate', {
+        meetingId,
+        notes: notes || 'General team sync meeting. Discussed project progress and upcoming milestones.',
+        participantNames: meetingData?.participants?.map(p => p.name) || []
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        setSummaryData(data);
-        toast?.success('AI Summary generated successfully!');
-        setShowNotesInput(false);
-      } else {
-        toast?.error('Failed to generate summary');
-      }
+      setSummaryData(res.data);
+      toast?.success('AI Summary generated successfully!');
+      setShowNotesInput(false);
     } catch (err) {
       toast?.error('Failed to generate summary');
     } finally {
@@ -149,7 +120,8 @@ ${(summaryData.actionItems || []).map(a => `☐ ${a.text || a} ${a.assignee ? `(
     if (!targetUrl) return;
     try {
       toast?.success('Starting download...');
-      const url = targetUrl.startsWith('http') ? targetUrl : `http://localhost:5000${targetUrl}`;
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+      const url = targetUrl.startsWith('http') ? targetUrl : `${backendUrl}${targetUrl}`;
       const response = await fetch(url);
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
@@ -323,7 +295,7 @@ ${(summaryData.actionItems || []).map(a => `☐ ${a.text || a} ${a.assignee ? `(
                     </div>
                     <div className="bg-black/50 rounded-2xl overflow-hidden border border-white/10 aspect-video flex items-center justify-center">
                       <video 
-                        src={rec.fileUrl.startsWith('http') ? rec.fileUrl : `http://localhost:5000${rec.fileUrl}`} 
+                        src={rec.fileUrl.startsWith('http') ? rec.fileUrl : `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}${rec.fileUrl}`} 
                         controls 
                         className="w-full h-full object-cover"
                       />
@@ -357,7 +329,7 @@ ${(summaryData.actionItems || []).map(a => `☐ ${a.text || a} ${a.assignee ? `(
                 </div>
                 <div className="bg-black/50 rounded-2xl overflow-hidden border border-white/10 aspect-video flex items-center justify-center">
                   <video 
-                    src={meetingData.recordingUrl.startsWith('http') ? meetingData.recordingUrl : `http://localhost:5000${meetingData.recordingUrl}`} 
+                    src={meetingData.recordingUrl.startsWith('http') ? meetingData.recordingUrl : `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'}${meetingData.recordingUrl}`} 
                     controls 
                     className="w-full h-full object-cover"
                   />

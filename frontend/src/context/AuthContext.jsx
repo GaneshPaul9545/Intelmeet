@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
 const AuthContext = createContext();
 
@@ -15,15 +16,8 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const res = await fetch('/api/auth/profile', {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (res.ok) {
-            const data = await res.json();
-            setUser(data);
-          } else {
-            localStorage.removeItem('token');
-          }
+          const res = await api.get('/api/auth/profile');
+          setUser(res.data);
         } catch (error) {
           console.error("Error fetching profile", error);
           localStorage.removeItem('token');
@@ -36,101 +30,71 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await res.json();
+      const res = await api.post('/api/auth/login', { email, password });
+      const data = res.data;
 
-      if (res.ok) {
-        localStorage.setItem('token', data.token);
-        setUser(data.user);
-        navigate('/app');
-        return { success: true };
-      } else {
-        return { success: false, message: data.message };
-      }
+      localStorage.setItem('token', data.token);
+      setUser(data.user);
+      navigate('/app');
+      return { success: true };
     } catch (err) {
-      return { success: false, message: 'Server error. Please try again.' };
+      const message = err.response?.data?.message || 'Server error. Please try again.';
+      return { success: false, message };
     }
   };
 
   const register = async (name, email, password) => {
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
-      });
-      const data = await res.json();
-      if (res.ok) {
+      const res = await api.post('/api/auth/register', { name, email, password });
+      if (res.status === 200 || res.status === 201) {
         return await login(email, password);
       } else {
-        return { success: false, message: data.message };
+        return { success: false, message: res.data?.message || 'Registration failed' };
       }
     } catch (err) {
-      return { success: false, message: 'Server error. Please try again.' };
+      const message = err.response?.data?.message || 'Server error. Please try again.';
+      return { success: false, message };
     }
   };
 
   const googleLogin = async (googleData) => {
     try {
-      const res = await fetch('/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(googleData)
-      });
-      const data = await res.json();
+      const res = await api.post('/api/auth/google', googleData);
+      const data = res.data;
 
-      if (res.ok) {
-        localStorage.setItem('token', data.token);
-        setUser(data.user);
-        navigate('/app');
-        return { success: true };
-      } else {
-        return { success: false, message: data.message };
-      }
+      localStorage.setItem('token', data.token);
+      setUser(data.user);
+      navigate('/app');
+      return { success: true };
     } catch (err) {
-      return { success: false, message: 'Google login failed. Please try again.' };
+      const message = err.response?.data?.message || 'Google login failed. Please try again.';
+      return { success: false, message };
     }
   };
 
   const forgotPassword = async (email) => {
     try {
-      const res = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      });
-      const data = await res.json();
-      return { success: res.ok, message: data.message };
+      const res = await api.post('/api/auth/forgot-password', { email });
+      return { success: true, message: res.data.message };
     } catch (err) {
-      return { success: false, message: 'Server error. Please try again.' };
+      const message = err.response?.data?.message || 'Server error. Please try again.';
+      return { success: false, message };
     }
   };
 
   const resetPassword = async (token, newPassword) => {
     try {
-      const res = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, newPassword })
-      });
-      const data = await res.json();
-      return { success: res.ok, message: data.message };
+      const res = await api.post('/api/auth/reset-password', { token, newPassword });
+      return { success: true, message: res.data.message };
     } catch (err) {
-      return { success: false, message: 'Server error. Please try again.' };
+      const message = err.response?.data?.message || 'Server error. Please try again.';
+      return { success: false, message };
     }
   };
 
   const logout = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      await api.post('/api/auth/logout');
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
@@ -160,3 +124,4 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+

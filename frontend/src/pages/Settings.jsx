@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useTheme } from '../context/ThemeContext';
+import api from '../services/api';
 
 export default function Settings() {
   const { user, updateUser } = useAuth();
@@ -28,26 +29,11 @@ export default function Settings() {
     setProfileLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/users/profile', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ name, email })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        updateUser?.({ name: data.name, email: data.email });
-        toast?.success('Profile updated successfully!');
-      } else {
-        const data = await res.json();
-        toast?.error(data.message || 'Failed to update profile');
-      }
+      const res = await api.put('/api/users/profile', { name, email });
+      updateUser?.({ name: res.data.name, email: res.data.email });
+      toast?.success('Profile updated successfully!');
     } catch (error) {
-      toast?.error('Error updating profile');
+      toast?.error(error.response?.data?.message || 'Error updating profile');
     } finally {
       setProfileLoading(false);
     }
@@ -70,27 +56,13 @@ export default function Settings() {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/users/password', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ currentPassword, newPassword })
-      });
-
-      if (res.ok) {
-        toast?.success('Password changed successfully!');
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
-      } else {
-        const data = await res.json();
-        toast?.error(data.message || 'Failed to change password');
-      }
+      await api.put('/api/users/password', { currentPassword, newPassword });
+      toast?.success('Password changed successfully!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
     } catch (error) {
-      toast?.error('Error changing password');
+      toast?.error(error.response?.data?.message || 'Error changing password');
     } finally {
       setPasswordLoading(false);
     }
@@ -101,24 +73,10 @@ export default function Settings() {
     setPrefsLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/users/preferences', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ preferences: { darkMode: isDark } })
-      });
-
-      if (res.ok) {
-        toast?.success('Preferences updated!');
-      } else {
-        const data = await res.json();
-        toast?.error(data.message || 'Failed to update preferences');
-      }
+      await api.put('/api/users/preferences', { preferences: { darkMode: isDark } });
+      toast?.success('Preferences updated!');
     } catch (error) {
-      toast?.error('Error updating preferences');
+      toast?.error(error.response?.data?.message || 'Error updating preferences');
     } finally {
       setPrefsLoading(false);
     }

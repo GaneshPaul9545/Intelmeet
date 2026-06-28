@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mic, MicOff, Video, VideoOff, Settings, ArrowLeft } from 'lucide-react';
+import api from '../services/api';
 
 export default function PreJoin() {
   const [roomId, setRoomId] = useState('');
@@ -76,17 +77,10 @@ export default function PreJoin() {
 
     // Try to find meeting by code first
     try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        const res = await fetch(`/api/meetings/code/${roomId.trim()}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const meeting = await res.json();
-          navigate(`/meeting/${meeting.meetingCode || meeting._id}`, { state: { isVideoOn, isMicOn } });
-          return;
-        }
-      }
+      const res = await api.get(`/api/meetings/code/${roomId.trim()}`);
+      const meeting = res.data;
+      navigate(`/meeting/${meeting.meetingCode || meeting._id}`, { state: { isVideoOn, isMicOn } });
+      return;
     } catch (err) {
       // Fall through to direct navigation
     }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { MoreHorizontal, Plus, X, GripVertical, Trash2 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import Modal from '../components/Modal';
+import api from '../services/api';
 
 const TAG_COLORS = {
   'Design': 'bg-blue-500',
@@ -30,14 +31,8 @@ export default function Projects() {
 
   const fetchTasks = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/tasks', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setTasks(data);
-      }
+      const res = await api.get('/api/tasks');
+      setTasks(res.data);
     } catch (err) {
       console.error('Failed to fetch tasks:', err);
     } finally {
@@ -47,14 +42,8 @@ export default function Projects() {
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/users', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUsers(data);
-      }
+      const res = await api.get('/api/users');
+      setUsers(res.data);
     } catch (err) {
       console.error('Failed to fetch users:', err);
     }
@@ -65,27 +54,16 @@ export default function Projects() {
     if (!newTask.title.trim()) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/tasks', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ...newTask,
-          status: addToColumn,
-          color: TAG_COLORS[newTask.tag] || 'bg-blue-500'
-        })
+      const res = await api.post('/api/tasks', {
+        ...newTask,
+        status: addToColumn,
+        color: TAG_COLORS[newTask.tag] || 'bg-blue-500'
       });
 
-      if (res.ok) {
-        const created = await res.json();
-        setTasks(prev => [created, ...prev]);
-        setShowAddModal(false);
-        setNewTask({ title: '', tag: 'General', description: '', assignees: [], dueDate: '', priority: 'medium' });
-        toast?.success('Task created!');
-      }
+      setTasks(prev => [res.data, ...prev]);
+      setShowAddModal(false);
+      setNewTask({ title: '', tag: 'General', description: '', assignees: [], dueDate: '', priority: 'medium' });
+      toast?.success('Task created!');
     } catch (err) {
       toast?.error('Failed to create task');
     }
@@ -93,20 +71,9 @@ export default function Projects() {
 
   const handleUpdateStatus = async (taskId, newStatus) => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`/api/tasks/${taskId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
-
-      if (res.ok) {
-        setTasks(prev => prev.map(t => t._id === taskId ? { ...t, status: newStatus } : t));
-        toast?.success(`Task moved to ${newStatus}`);
-      }
+      await api.patch(`/api/tasks/${taskId}/status`, { status: newStatus });
+      setTasks(prev => prev.map(t => t._id === taskId ? { ...t, status: newStatus } : t));
+      toast?.success(`Task moved to ${newStatus}`);
     } catch (err) {
       toast?.error('Failed to update task');
     }
@@ -114,16 +81,9 @@ export default function Projects() {
 
   const handleDeleteTask = async (taskId) => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`/api/tasks/${taskId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (res.ok) {
-        setTasks(prev => prev.filter(t => t._id !== taskId));
-        toast?.success('Task deleted');
-      }
+      await api.delete(`/api/tasks/${taskId}`);
+      setTasks(prev => prev.filter(t => t._id !== taskId));
+      toast?.success('Task deleted');
     } catch (err) {
       toast?.error('Failed to delete task');
     }

@@ -4,6 +4,7 @@ import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import useWebRTC from '../hooks/useWebRTC';
+import api from '../services/api';
 
 export default function MeetingRoom() {
   const { id: meetingId } = useParams();
@@ -47,27 +48,21 @@ export default function MeetingRoom() {
   useEffect(() => {
     const fetchMeeting = async () => {
       try {
-        const token = localStorage.getItem('token');
-        // Try by ID first, then by code
-        let res = await fetch(`/api/meetings/${meetingId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!res.ok) {
-          res = await fetch(`/api/meetings/code/${meetingId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
+        let res;
+        try {
+          res = await api.get(`/api/meetings/${meetingId}`);
+        } catch (e) {
+          res = await api.get(`/api/meetings/code/${meetingId}`);
         }
-        if (res.ok) {
-          const data = await res.json();
-          setMeetingData(data);
-          if (data.chatHistory && data.chatHistory.length > 0) {
-            setMessages(data.chatHistory.map(msg => ({
-              text: msg.text,
-              sender: msg.sender,
-              time: msg.time,
-              isMine: msg.senderId === (user?._id || user?.id)
-            })));
-          }
+        const data = res.data;
+        setMeetingData(data);
+        if (data.chatHistory && data.chatHistory.length > 0) {
+          setMessages(data.chatHistory.map(msg => ({
+            text: msg.text,
+            sender: msg.sender,
+            time: msg.time,
+            isMine: msg.senderId === (user?._id || user?.id)
+          })));
         }
       } catch (err) {
         console.error('Failed to fetch meeting:', err);
@@ -179,23 +174,12 @@ export default function MeetingRoom() {
         // Upload to backend
         try {
           toast?.success('Processing recording...');
-          const token = localStorage.getItem('token');
           const formData = new FormData();
           const targetId = meetingData?._id || meetingId;
           formData.append('meetingId', targetId);
           formData.append('recording', blob, `Meeting_Recording_${targetId}.webm`);
           
-          const res = await fetch(`/api/recordings/upload`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`
-            },
-            body: formData
-          });
-          
-          if (!res.ok) {
-            throw new Error(`Upload failed with status: ${res.status}`);
-          }
+          await api.post(`/api/recordings/upload`, formData);
           
           toast?.success('Recording uploaded successfully!');
           console.log('Recording uploaded successfully to begin AI processing.');
@@ -257,18 +241,10 @@ export default function MeetingRoom() {
 
     // Update meeting status
     try {
-      const token = localStorage.getItem('token');
       const duration = Math.ceil(elapsedTime / 60);
 
       if (meetingData?._id) {
-        await fetch(`/api/meetings/${meetingData._id}/end`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ duration, notes: meetingNotes })
-        });
+        await api.put(`/api/meetings/${meetingData._id}/end`, { duration, notes: meetingNotes });
       }
     } catch (err) {
       console.error('Failed to end meeting:', err);
