@@ -1,0 +1,48 @@
+name: IntelliMeet CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    # Backend
+    - name: Use Node.js ${{ matrix.node-version }} for Backend
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+
+    - name: Install Backend Dependencies
+      run: npm ci
+      working-directory: ./backend
+
+    # You can add backend tests here when implemented
+    # - name: Run Backend Tests
+    #   run: npm test
+    #   working-directory: ./backend
+
+    # Frontend
+    - name: Use Node.js ${{ matrix.node-version }} for Frontend
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install Frontend Dependencies
+      run: npm ci
+
+    - name: Build Frontend
+      run: npm run build

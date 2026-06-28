@@ -1,0 +1,165 @@
+@import "tailwindcss";
+
+/* ─── Theme Variables ─────────────────────────────────────────── */
+:root,
+[data-theme="dark"] {
+  --bg-base:        #0d1117;
+  --bg-surface:     #161b22;
+  --bg-surface-80:  rgba(22, 27, 34, 0.80);
+  --bg-input:       rgba(0, 0, 0, 0.20);
+  --border-subtle:  rgba(255, 255, 255, 0.05);
+  --border-input:   rgba(255, 255, 255, 0.10);
+  --text-primary:   #e2e8f0;
+  --text-secondary: #9ca3af;
+  --text-muted:     #6b7280;
+  --scrollbar-thumb:       #374151;
+  --scrollbar-thumb-hover: #4b5563;
+  --blob-1: rgba(79, 70, 229, 0.15);
+  --blob-2: rgba(59, 130, 246, 0.15);
+}
+
+[data-theme="light"] {
+  --bg-base:        #f0f4f8;
+  --bg-surface:     #ffffff;
+  --bg-surface-80:  rgba(255, 255, 255, 0.85);
+  --bg-input:       rgba(0, 0, 0, 0.04);
+  --border-subtle:  rgba(0, 0, 0, 0.06);
+  --border-input:   rgba(0, 0, 0, 0.12);
+  --text-primary:   #1e293b;
+  --text-secondary: #475569;
+  --text-muted:     #94a3b8;
+  --scrollbar-thumb:       #cbd5e1;
+  --scrollbar-thumb-hover: #94a3b8;
+  --blob-1: rgba(99, 102, 241, 0.10);
+  --blob-2: rgba(59, 130, 246, 0.10);
+}
+
+/* ─── Base ────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    /* Smooth colour transition when theme switches */
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    @apply antialiased font-sans flex flex-col min-h-screen overflow-x-hidden;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    background-color: var(--bg-surface-80);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-subtle);
+    @apply rounded-2xl shadow-xl;
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+  }
+
+  .glass-card-hover {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  .glass-card-hover:hover {
+    background-color: var(--bg-surface);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+  }
+
+  /* Custom scrollbar for webkit */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+  }
+}
+
+/* Background blob effects */
+.bg-blobs {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 15% 50%, var(--blob-1), transparent 25%),
+    radial-gradient(circle at 85% 30%, var(--blob-2), transparent 25%);
+  transition: background 0.25s ease;
+}
+
+/* Toast slide-in animation */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
+
+/* Modal animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Drag and drop styles */
+[draggable="true"] {
+  cursor: grab;
+}
+
+[draggable="true"]:active {
+  cursor: grabbing;
+  opacity: 0.7;
+}
